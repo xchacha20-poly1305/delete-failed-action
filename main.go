@@ -18,10 +18,10 @@ var (
 const timeout = 10 * time.Second
 
 func init() {
-	flag.StringVar(&token, "t", "", "Your token")
-	flag.StringVar(&user, "u", "", "User name")
-	flag.StringVar(&repo, "r", "", "Target repo")
-	flag.StringVar(&workflowName, "w", "", "Target workflow file name")
+	flag.StringVar(&token, "t", "", "Your token.")
+	flag.StringVar(&user, "u", "", "User name.")
+	flag.StringVar(&repo, "r", "", "Target repo.")
+	flag.StringVar(&workflowName, "w", "build.yml", "Target workflow file name.")
 
 	flag.Parse()
 }
@@ -31,6 +31,7 @@ func main() {
 
 	actions := client.Actions
 	var deleted int64
+	listOpt := github.ListOptions{}
 
 	for {
 		ctx, cancel := context.WithTimeout(context.Background(), timeout)
@@ -39,11 +40,20 @@ func main() {
 			&github.ListWorkflowRunsOptions{
 				Status:              "failure",
 				ExcludePullRequests: false,
-				ListOptions:         github.ListOptions{},
+				ListOptions:         listOpt,
 			})
 		cancel()
 		if err != nil {
 			log.Fatalln(err)
+		}
+
+		if len(runs.WorkflowRuns) == 0 {
+			if resp.NextPage == 0 {
+				break
+			}
+
+			listOpt.Page++
+			continue
 		}
 
 		for _, run := range runs.WorkflowRuns {
@@ -58,9 +68,6 @@ func main() {
 			deleted++
 		}
 
-		if len(runs.WorkflowRuns) == 0 || resp.NextPage == 0 {
-			break
-		}
 	}
 
 	log.Printf("Delete %d failed workflow.\n", deleted)
