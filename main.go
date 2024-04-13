@@ -58,7 +58,7 @@ func main() {
 			deleted++
 		}
 
-		if resp.NextPage == 0 {
+		if len(runs.WorkflowRuns) == 0 || resp.NextPage == 0 {
 			break
 		}
 	}
