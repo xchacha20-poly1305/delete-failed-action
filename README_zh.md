@@ -16,5 +16,5 @@ export GH_TOKEN="your token"
 ## 构建
 
 ```shell
-go build -v . -trimpath -ldflags="-w -s -buildid="
+go build . -v -trimpath -ldflags="-w -s -buildid="
 ```
